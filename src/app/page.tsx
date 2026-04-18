@@ -109,23 +109,15 @@ export default function Dashboard() {
             <div className="space-y-4">
               <button 
                 onClick={() => signIn("google")} 
-                className="w-full py-4 bg-white border-2 border-gray-100 rounded-3xl font-bold hover:border-red-200 hover:bg-red-50 transition-all flex items-center justify-center gap-3 shadow-sm"
+                className="w-full py-4 bg-gray-900 text-white rounded-3xl font-bold hover:bg-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200"
               >
                 <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">G</div>
-                Google (Classroom) でログイン
-              </button>
-              
-              <button 
-                onClick={() => signIn("azure-ad")} 
-                className="w-full py-4 bg-white border-2 border-gray-100 rounded-3xl font-bold hover:border-blue-200 hover:bg-blue-50 transition-all flex items-center justify-center gap-3 shadow-sm"
-              >
-                <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">M</div>
-                Microsoft (Outlook/Teams) でログイン
+                OMUアカウントでログイン
               </button>
             </div>
             
             <p className="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-              両方のボタンから順にログインすると、すべてのデータが統合されます
+              Google Classroomのデータと自動的に同期されます
             </p>
           </div>
         ) : (
