@@ -24,15 +24,27 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
     const sourceIdx = findIndex("Source");
     const urlIdx = findIndex("URL");
 
-    return rows.slice(1).map((row, index) => ({
-      id: `sheet-${index}`,
-      title: row[titleIdx] || "無題",
-      content: row[contentIdx] || "",
-      date: row[dateIdx] || new Date().toISOString(),
-      source: (row[sourceIdx] || "連絡") as "課題" | "連絡",
-      url: row[urlIdx] || "",
-      courseName: row[sourceIdx] || "Outlook/Teams",
-    }));
+    return rows.slice(1).map((row, index) => {
+      const rawDate = row[dateIdx];
+      let date = new Date().toISOString();
+      
+      if (rawDate) {
+        const parsedDate = new Date(rawDate);
+        if (!isNaN(parsedDate.getTime())) {
+          date = parsedDate.toISOString();
+        }
+      }
+
+      return {
+        id: `sheet-${index}`,
+        title: row[titleIdx] || "無題",
+        content: row[contentIdx] || "",
+        date: date,
+        source: (row[sourceIdx] === "課題" ? "課題" : "連絡") as "課題" | "連絡",
+        url: row[urlIdx] || "",
+        courseName: row[sourceIdx] || "Outlook/Teams",
+      };
+    });
   } catch (error) {
     console.error("[Sheets API Error]", error);
     return [];
