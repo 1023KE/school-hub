@@ -14,44 +14,30 @@ export interface NotificationItem {
 }
 
 export async function fetchAllNotifications(session: any): Promise<NotificationItem[]> {
-  if (!session?.accessToken) return [];
+  if (!session?.accessToken || session.provider !== "google") return [];
 
   try {
-    if (session.provider === "google") {
-      const rawData = await getClassroomData(session.accessToken);
-      const now = new Date();
+    const rawData = await getClassroomData(session.accessToken);
+    const now = new Date();
 
-      return rawData.map((item: any) => {
-        let isExpired = false;
-        let dueDateString = "";
+    return rawData.map((item: any) => {
+      let isExpired = false;
+      let dueDateString = "";
 
-        if (item.dueDate) {
-          const dueDate = new Date(item.dueDate.year, item.dueDate.month - 1, item.dueDate.day, 23, 59, 59);
-          isExpired = dueDate < now;
-          dueDateString = `${item.dueDate.year}/${item.dueDate.month}/${item.dueDate.day}`;
-        }
+      if (item.dueDate) {
+        const dueDate = new Date(item.dueDate.year, item.dueDate.month - 1, item.dueDate.day, 23, 59, 59);
+        isExpired = dueDate < now;
+        dueDateString = `${item.dueDate.year}/${item.dueDate.month}/${item.dueDate.day}`;
+      }
 
-        return {
-          ...item,
-          isExpired,
-          dueDateString,
-        };
-      }) as NotificationItem[];
-    } else if (session.provider === "azure-ad") {
-      const graphData = await getGraphData(session.accessToken);
-      return graphData.map((item: any) => ({
+      return {
         ...item,
-        courseName: "Microsoft 365",
-        isExpired: false,
-        // OutlookやTeamsのデータも「連絡」または「すべて」として扱う
-        source: "連絡", 
-        platform: item.source // "Outlook" か "Teams" を記録しておく
-      })) as NotificationItem[];
-    }
+        isExpired,
+        dueDateString,
+      };
+    }) as NotificationItem[];
   } catch (error) {
     console.error("Fetch Error:", error);
     return [];
   }
-
-  return [];
 }

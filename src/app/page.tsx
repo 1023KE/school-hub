@@ -197,16 +197,12 @@ export default function Dashboard() {
                           <div className="flex-1 min-w-0 pr-4">
                             <div className="flex items-center gap-2 mb-2">
                               <div className={`p-1 rounded-lg ${
-                                (item as any).platform === "Outlook" ? "bg-blue-50 text-blue-500" :
-                                (item as any).platform === "Teams" ? "bg-indigo-50 text-indigo-500" :
                                 item.source === "課題" ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"
                               }`}>
-                                {(item as any).platform === "Outlook" && <Calendar size={14} />}
-                                {(item as any).platform === "Teams" && <MessageSquare size={14} />}
                                 {item.source === "課題" && <CheckCircle2 size={14} />}
-                                {item.source === "連絡" && !(item as any).platform && <Megaphone size={14} />}
+                                {item.source === "連絡" && <Megaphone size={14} />}
                               </div>
-                              <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{(item as any).platform || item.source}</span>
+                              <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{item.source}</span>
                               {item.dueDateString && !item.isExpired && <span className="text-[9px] font-black text-orange-500">{item.dueDateString}まで</span>}
                               <span className="text-[9px] text-gray-300 font-black truncate max-w-[120px] ml-auto">{item.courseName}</span>
                             </div>
