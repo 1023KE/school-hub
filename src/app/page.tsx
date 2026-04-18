@@ -124,32 +124,6 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* サイドバー */}
             <div className="lg:col-span-3 space-y-8">
-              {/* 連携のステータス */}
-              <section className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm overflow-hidden relative">
-                <div className="relative z-10">
-                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Link2 size={14} /> 連携ステータス
-                  </h2>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${session.provider === "google" ? "bg-green-500" : "bg-gray-200"}`}></div>
-                      <span className="text-xs font-bold text-gray-700">Google Classroom</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${session.provider === "azure-ad" ? "bg-green-500" : "bg-gray-200"}`}></div>
-                      <span className="text-xs font-bold text-gray-700">Microsoft 365</span>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    onClick={() => signIn(session.provider === "google" ? "azure-ad" : "google")}
-                    className="mt-6 w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
-                  >
-                    <PlusCircle size={14} /> {session.provider === "google" ? "Microsoftも連携する" : "Googleも連携する"}
-                  </button>
-                </div>
-              </section>
-
               <section className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                 <h2 className="text-xs font-bold flex items-center gap-2 mb-6 text-gray-400 uppercase tracking-wider">
                   <Brush size={14} /> 掃除当番
