@@ -24,6 +24,12 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
     const sourceIdx = findIndex("Source");
     const urlIdx = findIndex("URL");
 
+    // Classroomと同じキーワード判別ロジック
+    const classify = (text: string) => {
+      return /課題|レポート|宿題|提出|制作|演習|テスト|小テスト|試験|フォーム|アンケート|振り返り|評価|コメント|ワーク/.test(text) 
+        ? "課題" : "連絡";
+    };
+
     return rows.slice(1).map((row, index) => {
       const rawDate = row[dateIdx];
       let date = new Date().toISOString();
@@ -35,18 +41,19 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
         }
       }
 
-      // シートのSource列から取得するか、デフォルトで"連絡"にする
-      const rawSource = row[sourceIdx] || "連絡";
-      const source = (rawSource.includes("課題") ? "課題" : "連絡") as "課題" | "連絡";
+      const title = row[titleIdx] || row[0] || "無題";
+      const content = row[contentIdx] || row[1] || "";
+      const rawSource = row[sourceIdx] || "Outlook/Teams";
 
       return {
         id: `sheet-${index}-${Date.now()}`,
-        title: row[titleIdx] || row[0] || "無題", // タイトルが見つからなければ1列目を使用
-        content: row[contentIdx] || row[1] || "",
+        title: title,
+        content: content,
         date: date,
-        source: source,
+        // タイトルまたは内容から「課題」か「連絡」かを判別
+        source: classify(title + content),
         url: row[urlIdx] || "",
-        courseName: rawSource || "Outlook/Teams", // 表示名としてSourceを使用
+        courseName: rawSource, // 表示名（Outlook, Teamsなど）
       };
     });
   } catch (error: any) {
