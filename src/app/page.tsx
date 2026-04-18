@@ -33,7 +33,7 @@ const linkify = (text: string) => {
         </a>
       );
     }
-    return part;Part
+    return part;
   });
 };
 

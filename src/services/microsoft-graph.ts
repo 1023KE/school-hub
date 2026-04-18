@@ -1,5 +1,4 @@
 import { Client } from "@microsoft/microsoft-graph-client";
-import "isomorphic-fetch";
 
 export async function getGraphData(accessToken: string) {
   const client = Client.init({
