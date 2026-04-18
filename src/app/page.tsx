@@ -174,25 +174,50 @@ export default function Dashboard() {
                     {filteredItems.length === 0 && !loading ? (
                       <div className="text-center py-20 text-gray-300 text-xs font-black italic"><Bell size={40} className="mx-auto mb-4 opacity-10" />No Data Found</div>
                     ) : (
-                      filteredItems.map((item) => (
-                        <button key={item.id} onClick={() => setSelectedItem(item)} className={`w-full text-left p-4 rounded-2xl border border-gray-50 transition-all flex justify-between items-center group ${activeTab !== "all" && item.isExpired ? "opacity-40" : "bg-white hover:border-blue-200 hover:shadow-md shadow-sm"}`}>
-                          <div className="flex-1 min-w-0 pr-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className={`p-1 rounded-lg ${
-                                item.source === "課題" ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"
-                              }`}>
-                                {item.source === "課題" && <CheckCircle2 size={14} />}
-                                {item.source === "連絡" && <Megaphone size={14} />}
+                      filteredItems.map((item) => {
+                        const isOutlook = item.courseName === "Outlook";
+                        const isTeams = item.courseName === "Teams";
+                        const isClassroom = !isOutlook && !isTeams;
+
+                        return (
+                          <button 
+                            key={item.id} 
+                            onClick={() => setSelectedItem(item)} 
+                            className={`w-full text-left p-4 rounded-2xl border transition-all flex justify-between items-center group 
+                              ${activeTab !== "all" && item.isExpired ? "opacity-40" : "hover:shadow-md shadow-sm"}
+                              ${isClassroom ? "bg-green-50/30 border-green-100/50 hover:border-green-200" : 
+                                isOutlook ? "bg-blue-50/30 border-blue-100/50 hover:border-blue-200" : 
+                                isTeams ? "bg-indigo-50/30 border-indigo-100/50 hover:border-indigo-200" : 
+                                "bg-white border-gray-50 hover:border-blue-200"}
+                            `}
+                          >
+                            <div className="flex-1 min-w-0 pr-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className={`p-1 rounded-lg ${
+                                  item.source === "課題" ? "bg-red-50 text-red-500" : 
+                                  isClassroom ? "bg-green-100 text-green-700" :
+                                  isOutlook ? "bg-blue-100 text-blue-700" :
+                                  isTeams ? "bg-indigo-100 text-indigo-700" :
+                                  "bg-green-50 text-green-600"
+                                }`}>
+                                  {item.source === "課題" && <CheckCircle2 size={14} />}
+                                  {item.source === "連絡" && (isOutlook ? <Calendar size={14} /> : isTeams ? <MessageSquare size={14} /> : <Megaphone size={14} />)}
+                                </div>
+                                <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{item.source}</span>
+                                {item.dueDateString && !item.isExpired && <span className="text-[9px] font-black text-orange-500">{item.dueDateString}まで</span>}
+                                <span className={`text-[9px] font-black truncate max-w-[120px] ml-auto ${
+                                  isClassroom ? "text-green-600/50" :
+                                  isOutlook ? "text-blue-600/50" :
+                                  isTeams ? "text-indigo-600/50" :
+                                  "text-gray-300"
+                                }`}>{item.courseName}</span>
                               </div>
-                              <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{item.source}</span>
-                              {item.dueDateString && !item.isExpired && <span className="text-[9px] font-black text-orange-500">{item.dueDateString}まで</span>}
-                              <span className="text-[9px] text-gray-300 font-black truncate max-w-[120px] ml-auto">{item.courseName}</span>
+                              <h3 className="font-bold text-gray-800 truncate group-hover:text-blue-600 transition-colors text-sm">{item.title}</h3>
                             </div>
-                            <h3 className="font-bold text-gray-800 truncate group-hover:text-blue-600 transition-colors text-sm">{item.title}</h3>
-                          </div>
-                          <ChevronRight size={16} className="text-gray-200 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                        </button>
-                      ))
+                            <ChevronRight size={16} className="text-gray-200 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -205,16 +230,24 @@ export default function Dashboard() {
       {selectedItem && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-8">
+            <div className={`p-8 ${
+              selectedItem.courseName === "Outlook" ? "bg-blue-50/20" :
+              selectedItem.courseName === "Teams" ? "bg-indigo-50/20" :
+              "bg-green-50/20"
+            }`}>
               <div className="flex justify-between items-start mb-8">
                 <div className="flex-1 pr-8">
-                  <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">{selectedItem.courseName}</div>
+                  <div className={`text-[10px] font-black uppercase tracking-widest mb-2 ${
+                    selectedItem.courseName === "Outlook" ? "text-blue-400" :
+                    selectedItem.courseName === "Teams" ? "text-indigo-400" :
+                    "text-green-400"
+                  }`}>{selectedItem.courseName}</div>
                   <h2 className="text-xl font-black text-gray-900 leading-tight">{selectedItem.title}</h2>
                 </div>
-                <button onClick={() => setSelectedItem(null)} className="text-gray-300 hover:text-gray-900 p-2 bg-gray-50 rounded-full transition-all"><X size={20} /></button>
+                <button onClick={() => setSelectedItem(null)} className="text-gray-300 hover:text-gray-900 p-2 bg-white/80 rounded-full transition-all backdrop-blur-sm"><X size={20} /></button>
               </div>
               
-              <div className="bg-gray-50/50 p-6 rounded-3xl mb-8 max-h-[350px] overflow-y-auto border border-gray-100 text-xs font-medium leading-relaxed text-gray-600">
+              <div className="bg-white p-6 rounded-3xl mb-8 max-h-[350px] overflow-y-auto border border-gray-100/50 text-xs font-medium leading-relaxed text-gray-600 shadow-inner">
                 {linkify(selectedItem.content)}
               </div>
 
