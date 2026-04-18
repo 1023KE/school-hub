@@ -35,18 +35,31 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
         }
       }
 
+      // シートのSource列から取得するか、デフォルトで"連絡"にする
+      const rawSource = row[sourceIdx] || "連絡";
+      const source = (rawSource.includes("課題") ? "課題" : "連絡") as "課題" | "連絡";
+
       return {
-        id: `sheet-${index}`,
-        title: row[titleIdx] || "無題",
-        content: row[contentIdx] || "",
+        id: `sheet-${index}-${Date.now()}`,
+        title: row[titleIdx] || row[0] || "無題", // タイトルが見つからなければ1列目を使用
+        content: row[contentIdx] || row[1] || "",
         date: date,
-        source: (row[sourceIdx] === "課題" ? "課題" : "連絡") as "課題" | "連絡",
+        source: source,
         url: row[urlIdx] || "",
-        courseName: row[sourceIdx] || "Outlook/Teams",
+        courseName: rawSource || "Outlook/Teams", // 表示名としてSourceを使用
       };
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Sheets API Error]", error);
-    return [];
+    // エラー情報を画面に表示するためのダミーデータ（デバッグ用）
+    return [{
+      id: "error-sheet",
+      title: "シート取得エラー",
+      content: `エラー内容: ${error.message || "不明なエラー"}。シートIDや権限を確認してください。`,
+      date: new Date().toISOString(),
+      source: "連絡",
+      url: "",
+      courseName: "System Error",
+    }];
   }
 }

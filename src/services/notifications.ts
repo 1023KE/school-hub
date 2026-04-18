@@ -16,7 +16,8 @@ export interface NotificationItem {
 export async function fetchAllNotifications(session: any): Promise<NotificationItem[]> {
   if (!session?.accessToken || session.provider !== "google") return [];
 
-  const spreadsheetId = process.env.NEXT_PUBLIC_SHEET_ID;
+  // Vercelの環境変数から取得。なければ直接指定のIDをフォールバックにする
+  const spreadsheetId = process.env.NEXT_PUBLIC_SHEET_ID || "19az51yJL8sYX0lBXPhrJNfM-dBQVpakJ5vjmKRCyLUk";
 
   try {
     const classroomPromise = getClassroomData(session.accessToken);
@@ -30,7 +31,6 @@ export async function fetchAllNotifications(session: any): Promise<NotificationI
     ]);
 
     const now = new Date();
-
     const classroomItems = rawClassroomData.map((item: any) => {
       let isExpired = false;
       let dueDateString = "";
@@ -49,6 +49,18 @@ export async function fetchAllNotifications(session: any): Promise<NotificationI
     });
 
     const combinedData = [...classroomItems, ...sheetsData];
+    
+    // デバッグ用: シートが空の場合にメッセージを表示
+    if (spreadsheetId && sheetsData.length === 0) {
+      combinedData.push({
+        id: "empty-sheet",
+        title: "スプレッドシートが空です",
+        content: "Sheet1にデータが2行目以降に存在するか確認してください。見出しは Title, Content, Date, Source, URL です。",
+        date: new Date().toISOString(),
+        source: "連絡",
+        courseName: "System Info",
+      });
+    }
 
     return combinedData.sort((a, b) => 
       new Date(b.date!).getTime() - new Date(a.date!).getTime()
