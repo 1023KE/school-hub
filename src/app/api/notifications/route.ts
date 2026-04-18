@@ -3,15 +3,20 @@ import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { fetchAllNotifications } from "@/services/notifications";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
+  const { searchParams } = new URL(request.url);
+  const sheetId = searchParams.get("sheetId");
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const notifications = await fetchAllNotifications(session);
+    const notifications = await fetchAllNotifications({
+      ...session,
+      customSheetId: sheetId
+    });
     return NextResponse.json(notifications);
   } catch (error) {
     console.error(error);

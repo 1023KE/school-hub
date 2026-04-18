@@ -16,8 +16,7 @@ export interface NotificationItem {
 export async function fetchAllNotifications(session: any): Promise<NotificationItem[]> {
   if (!session?.accessToken || session.provider !== "google") return [];
 
-  // Vercelの環境変数から取得。なければ直接指定のIDをフォールバックにする
-  const spreadsheetId = process.env.NEXT_PUBLIC_SHEET_ID || "19az51yJL8sYX0lBXPhrJNfM-dBQVpakJ5vjmKRCyLUk";
+  const spreadsheetId = session.customSheetId || process.env.NEXT_PUBLIC_SHEET_ID || "19az51yJL8sYX0lBXPhrJNfM-dBQVpakJ5vjmKRCyLUk";
 
   try {
     const classroomPromise = getClassroomData(session.accessToken);

@@ -51,6 +51,15 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "assignments" | "announcements">("all");
   const [showExpired, setShowExpired] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [customSheetId, setCustomSheetId] = useState("");
+
+  useEffect(() => {
+    const savedId = localStorage.getItem("custom_sheet_id");
+    if (savedId) {
+      setCustomSheetId(savedId);
+    }
+  }, []);
 
   useEffect(() => {
     if (session) fetchData();
@@ -59,7 +68,9 @@ export default function Dashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/notifications");
+      const sheetId = localStorage.getItem("custom_sheet_id");
+      const url = sheetId ? `/api/notifications?sheetId=${sheetId}` : "/api/notifications";
+      const res = await fetch(url);
       const data = await res.json();
       setItems(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -68,6 +79,12 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem("custom_sheet_id", customSheetId);
+    setShowSettings(false);
+    fetchData();
   };
 
   const filteredItems = items.filter(item => {
@@ -90,15 +107,26 @@ export default function Dashboard() {
         <header className="flex justify-between items-center mb-10">
           <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">School Hub</h1>
           
-          {session ? (
-            <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm">
-              <span className={`w-2 h-2 rounded-full ${session.provider === "google" ? "bg-red-500" : "bg-blue-500"}`}></span>
-              <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400">{session.user?.email}</span>
-              <button onClick={() => signOut()} className="p-1 text-gray-400 hover:text-red-500 transition">
-                <LogOut size={16} />
+          <div className="flex items-center gap-2">
+            {session && (
+              <button 
+                onClick={() => setShowSettings(true)}
+                className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white dark:bg-gray-900 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+              >
+                <Settings size={20} />
               </button>
-            </div>
-          ) : null}
+            )}
+            
+            {session ? (
+              <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm">
+                <span className={`w-2 h-2 rounded-full ${session.provider === "google" ? "bg-red-500" : "bg-blue-500"}`}></span>
+                <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400">{session.user?.email}</span>
+                <button onClick={() => signOut()} className="p-1 text-gray-400 hover:text-red-500 transition">
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : null}
+          </div>
         </header>
 
         {!session ? (
@@ -265,6 +293,43 @@ export default function Dashboard() {
                     詳細を開く
                   </a>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSettings && (
+        <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8">
+            <h2 className="text-xl font-black mb-2 text-gray-900 dark:text-white">連携設定</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-6">Outlook/Teams 連携用ID</p>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1">スプレッドシートID</label>
+                <input 
+                  type="text" 
+                  value={customSheetId}
+                  onChange={(e) => setCustomSheetId(e.target.value)}
+                  placeholder="1abc123..."
+                  className="w-full px-5 py-4 bg-gray-50 dark:bg-black rounded-2xl text-xs border border-transparent focus:bg-white dark:focus:bg-gray-800 focus:border-blue-100 dark:focus:border-blue-900 outline-none transition-all dark:text-white"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowSettings(false)}
+                  className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-2xl font-black text-[10px] hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                >
+                  キャンセル
+                </button>
+                <button 
+                  onClick={saveSettings}
+                  className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-[10px] hover:opacity-90 transition-all shadow-xl shadow-gray-200 dark:shadow-none"
+                >
+                  保存
+                </button>
               </div>
             </div>
           </div>
