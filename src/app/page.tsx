@@ -55,14 +55,16 @@ export default function Dashboard() {
   const [showSettings, setShowSettings] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [customSheetId, setCustomSheetId] = useState("");
+  const [duties, setDuties] = useState<{ area: string; names: string[] }[]>(CLEANING_DUTY);
+  const [showDutyEditor, setShowDutyEditor] = useState(false);
 
   useEffect(() => {
     const savedId = localStorage.getItem("custom_sheet_id");
     const hasSeenTutorial = localStorage.getItem("has_seen_tutorial");
+    const savedDuties = localStorage.getItem("cleaning_duties");
     
-    if (savedId) {
-      setCustomSheetId(savedId);
-    }
+    if (savedId) setCustomSheetId(savedId);
+    if (savedDuties) setDuties(JSON.parse(savedDuties));
 
     // ログイン済みで、かつIDが未設定で、まだ案内を見ていない場合に表示
     if (status === "authenticated" && !savedId && !hasSeenTutorial) {
@@ -118,68 +120,59 @@ export default function Dashboard() {
   return (
     <div className="bg-white dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 text-sm antialiased font-sans transition-colors duration-300">
       <div className="max-w-[1200px] mx-auto p-4 md:p-6">
-        <header className="flex justify-between items-center mb-10">
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">School Hub</h1>
-          
-          <div className="flex items-center gap-2">
-            {session && (
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white dark:bg-gray-900 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
-              >
-                <Settings size={20} />
-              </button>
-            )}
-            
-            {session ? (
-              <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm">
-                <span className={`w-2 h-2 rounded-full ${session.provider === "google" ? "bg-red-500" : "bg-blue-500"}`}></span>
-                <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400">{session.user?.email}</span>
-                <button onClick={() => signOut()} className="p-1 text-gray-400 hover:text-red-500 transition">
-                  <LogOut size={16} />
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </header>
-
         {!session ? (
-          <div className="text-center py-20 max-w-xl mx-auto">
-            <h2 className="text-3xl font-black mb-4 text-gray-900 dark:text-white leading-tight">学校生活を一つにまとめよう</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-12 text-base font-medium leading-relaxed">@st.omu.ac.jp のアカウントを使って、<br/>Classroom、Outlook、Teamsを同期します。</p>
+          <div className="min-h-[85vh] flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <h1 className="text-5xl font-black mb-2 text-gray-900 dark:text-white tracking-tighter italic">School Hub</h1>
+            <p className="text-gray-400 dark:text-gray-500 mb-12 text-xs font-bold uppercase tracking-widest">Connect Classroom, Outlook, Teams</p>
             
-            <div className="space-y-4">
-              <button 
-                onClick={() => signIn("google")} 
-                className="w-full py-4 bg-gray-900 dark:bg-white dark:text-black text-white rounded-3xl font-bold hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-xl shadow-gray-200 dark:shadow-none"
-              >
-                <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">G</div>
-                Classroomでログイン
-              </button>
-
-              <button 
-                onClick={() => signIn("azure-ad")} 
-                className="w-full py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white rounded-3xl font-bold hover:border-blue-200 dark:hover:border-blue-500 transition-all flex items-center justify-center gap-3 shadow-sm"
-              >
-                <div className="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">M</div>
-                Outlook/Teamsでログイン
-              </button>
-            </div>
-            
-            <p className="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
-              両方のボタンから順にログインすると、すべてのデータが統合されます
-            </p>
+            <button 
+              onClick={() => signIn("google")} 
+              className="w-full max-w-xs py-5 bg-gray-900 dark:bg-white dark:text-black text-white rounded-3xl font-black text-xs hover:opacity-90 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-gray-200 dark:shadow-none"
+            >
+              <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">G</div>
+              OMUアカウントでログイン
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <>
+            <header className="flex justify-between items-center mb-10">
+              <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">School Hub</h1>
+              
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors bg-white dark:bg-gray-900 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm"
+                >
+                  <Settings size={20} />
+                </button>
+                
+                <div className="flex items-center gap-3 bg-white dark:bg-gray-900 px-4 py-2 rounded-full border border-gray-100 dark:border-gray-800 shadow-sm">
+                  <span className={`w-2 h-2 rounded-full ${session.provider === "google" ? "bg-red-500" : "bg-blue-500"}`}></span>
+                  <span className="text-[11px] font-bold text-gray-600 dark:text-gray-400">{session.user?.email}</span>
+                  <button onClick={() => signOut()} className="p-1 text-gray-400 hover:text-red-500 transition">
+                    <LogOut size={16} />
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* サイドバー */}
             <div className="lg:col-span-3 space-y-8">
               <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
-                <h2 className="text-xs font-bold flex items-center gap-2 mb-6 text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                  <Brush size={14} /> 掃除当番
-                </h2>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xs font-bold flex items-center gap-2 text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                    <Brush size={14} /> 掃除当番
+                  </h2>
+                  <button 
+                    onClick={() => setShowDutyEditor(true)}
+                    className="p-1.5 text-gray-300 hover:text-blue-500 transition-colors bg-gray-50 dark:bg-black rounded-lg"
+                  >
+                    <Settings size={12} />
+                  </button>
+                </div>
                 <div className="space-y-2">
-                  {CLEANING_DUTY.map((duty, i) => (
+                  {duties.map((duty, i) => (
                     <div key={i} className="flex justify-between p-3 bg-gray-50 dark:bg-black rounded-xl text-xs border border-transparent">
                       <span className="font-bold text-gray-700 dark:text-gray-300">{duty.area}</span>
                       <span className="text-gray-500 dark:text-gray-500 font-medium">{duty.names.join(", ")}</span>
@@ -271,10 +264,10 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
 
-      {selectedItem && (
+        {selectedItem && (
         <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100 dark:border-gray-800">
             <div className={`p-8 ${
@@ -378,6 +371,76 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      {showDutyEditor && (
+        <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[80]">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 p-10 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-2xl font-black mb-6 text-gray-900 dark:text-white tracking-tighter">掃除当番の編集</h2>
+            <div className="space-y-4 mb-8 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+              {duties.map((duty, i) => (
+                <div key={i} className="space-y-3 p-5 bg-gray-50/50 dark:bg-black/50 rounded-3xl border border-gray-100 dark:border-gray-800 group relative">
+                  <div className="flex justify-between items-center">
+                     <input 
+                        value={duty.area} 
+                        onChange={(e) => {
+                          const next = [...duties];
+                          next[i] = { ...next[i], area: e.target.value };
+                          setDuties(next);
+                        }}
+                        className="bg-transparent font-black text-sm text-blue-500 dark:text-blue-400 outline-none w-3/4 placeholder:text-gray-300"
+                        placeholder="場所（例: 教室前）"
+                     />
+                     <button 
+                        onClick={() => setDuties(duties.filter((_, idx) => idx !== i))} 
+                        className="p-2 text-gray-200 hover:text-red-400 transition-colors"
+                     >
+                       <X size={16} />
+                     </button>
+                  </div>
+                  <input 
+                    value={duty.names.join(", ")} 
+                    onChange={(e) => {
+                      const next = [...duties];
+                      next[i] = { ...next[i], names: e.target.value.split(",").map(s => s.trim()).filter(Boolean) };
+                      setDuties(next);
+                    }}
+                    className="w-full bg-white dark:bg-gray-900 p-4 rounded-2xl text-[11px] font-bold outline-none border border-gray-100 dark:border-gray-800 focus:border-blue-200 dark:focus:border-blue-900 transition-all dark:text-white placeholder:text-gray-300"
+                    placeholder="担当者（カンマ区切り）"
+                  />
+                </div>
+              ))}
+              <button 
+                onClick={() => setDuties([...duties, { area: "", names: [] }])}
+                className="w-full py-4 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-3xl text-[10px] font-black text-gray-400 hover:text-blue-500 hover:border-blue-500 transition-all flex items-center justify-center gap-3 bg-gray-50/20 dark:bg-black/20"
+              >
+                <PlusCircle size={16} /> 場所を追加
+              </button>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => {
+                  const saved = localStorage.getItem("cleaning_duties");
+                  if (saved) setDuties(JSON.parse(saved));
+                  else setDuties(CLEANING_DUTY);
+                  setShowDutyEditor(false);
+                }} 
+                className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-2xl font-black text-[11px] hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+              >
+                キャンセル
+              </button>
+              <button 
+                onClick={() => {
+                  localStorage.setItem("cleaning_duties", JSON.stringify(duties));
+                  setShowDutyEditor(false);
+                }} 
+                className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-[11px] hover:opacity-90 transition-all shadow-xl shadow-gray-200 dark:shadow-none"
+              >
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 }
