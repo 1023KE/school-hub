@@ -1,5 +1,5 @@
 import { getClassroomData } from "./google-classroom";
-import { getGraphData } from "./microsoft-graph";
+import { getSheetsData } from "./google-sheets";
 
 export interface NotificationItem {
   id: string;
@@ -16,11 +16,22 @@ export interface NotificationItem {
 export async function fetchAllNotifications(session: any): Promise<NotificationItem[]> {
   if (!session?.accessToken || session.provider !== "google") return [];
 
+  const spreadsheetId = process.env.NEXT_PUBLIC_SHEET_ID;
+
   try {
-    const rawData = await getClassroomData(session.accessToken);
+    const classroomPromise = getClassroomData(session.accessToken);
+    const sheetsPromise = spreadsheetId 
+      ? getSheetsData(session.accessToken, spreadsheetId)
+      : Promise.resolve([]);
+
+    const [rawClassroomData, sheetsData] = await Promise.all([
+      classroomPromise,
+      sheetsPromise
+    ]);
+
     const now = new Date();
 
-    return rawData.map((item: any) => {
+    const classroomItems = rawClassroomData.map((item: any) => {
       let isExpired = false;
       let dueDateString = "";
 
@@ -35,7 +46,13 @@ export async function fetchAllNotifications(session: any): Promise<NotificationI
         isExpired,
         dueDateString,
       };
-    }) as NotificationItem[];
+    });
+
+    const combinedData = [...classroomItems, ...sheetsData];
+
+    return combinedData.sort((a, b) => 
+      new Date(b.date!).getTime() - new Date(a.date!).getTime()
+    );
   } catch (error) {
     console.error("Fetch Error:", error);
     return [];
