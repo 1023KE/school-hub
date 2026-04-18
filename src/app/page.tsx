@@ -53,18 +53,31 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"all" | "assignments" | "announcements">("all");
   const [showExpired, setShowExpired] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [customSheetId, setCustomSheetId] = useState("");
 
   useEffect(() => {
     const savedId = localStorage.getItem("custom_sheet_id");
+    const hasSeenTutorial = localStorage.getItem("has_seen_tutorial");
+    
     if (savedId) {
       setCustomSheetId(savedId);
     }
-  }, []);
+
+    // ログイン済みで、かつIDが未設定で、まだ案内を見ていない場合に表示
+    if (status === "authenticated" && !savedId && !hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, [status]);
 
   useEffect(() => {
     if (session) fetchData();
   }, [session]);
+
+  const closeTutorial = () => {
+    localStorage.setItem("has_seen_tutorial", "true");
+    setShowTutorial(false);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -332,6 +345,35 @@ export default function Dashboard() {
                   保存
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTutorial && (
+        <div className="fixed inset-0 bg-gray-900/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[70]">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-[40px] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 p-10 text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <PlusCircle size={32} />
+            </div>
+            <h2 className="text-xl font-black mb-2 text-gray-900 dark:text-white">Outlookも統合しませんか？</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium leading-relaxed mb-8">
+              簡単な設定で、Outlookの予定やTeamsの通知も<br/>この画面にまとめられます。
+            </p>
+            
+            <div className="space-y-3">
+              <button 
+                onClick={() => { setShowTutorial(false); setShowSettings(true); }}
+                className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-[10px] hover:opacity-90 transition-all shadow-xl shadow-gray-200 dark:shadow-none"
+              >
+                設定ガイドを見る
+              </button>
+              <button 
+                onClick={closeTutorial}
+                className="w-full py-4 bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded-2xl font-black text-[10px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-all border border-gray-100 dark:border-gray-800"
+              >
+                あとで設定する
+              </button>
             </div>
           </div>
         </div>
