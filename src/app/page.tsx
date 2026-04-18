@@ -20,7 +20,8 @@ import {
   X,
   MessageSquare,
   PlusCircle,
-  Link2
+  Link2,
+  Settings
 } from "lucide-react";
 
 const linkify = (text: string) => {
