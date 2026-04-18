@@ -9,20 +9,29 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: spreadsheetId,
-      range: "Sheet1!A2:E", // 1行目はヘッダー [Title, Content, Date, Source, URL]
+      range: "Sheet1!A1:Z", // 1行目のヘッダーを含めて広めに取得
     });
 
     const rows = response.data.values;
-    if (!rows || rows.length === 0) return [];
+    if (!rows || rows.length < 2) return [];
 
-    return rows.map((row, index) => ({
+    const headers = rows[0];
+    const findIndex = (name: string) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+
+    const titleIdx = findIndex("Title");
+    const contentIdx = findIndex("Content");
+    const dateIdx = findIndex("Date");
+    const sourceIdx = findIndex("Source");
+    const urlIdx = findIndex("URL");
+
+    return rows.slice(1).map((row, index) => ({
       id: `sheet-${index}`,
-      title: row[0] || "無題",
-      content: row[1] || "",
-      date: row[2] || new Date().toISOString(),
-      source: row[3] || "連絡",
-      url: row[4] || "",
-      courseName: "Outlook/Teams",
+      title: row[titleIdx] || "無題",
+      content: row[contentIdx] || "",
+      date: row[dateIdx] || new Date().toISOString(),
+      source: (row[sourceIdx] || "連絡") as "課題" | "連絡",
+      url: row[urlIdx] || "",
+      courseName: row[sourceIdx] || "Outlook/Teams",
     }));
   } catch (error) {
     console.error("[Sheets API Error]", error);
