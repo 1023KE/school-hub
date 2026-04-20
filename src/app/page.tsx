@@ -146,7 +146,7 @@ export default function Dashboard() {
   };
 
   const targetWed = getTargetWednesday();
-  const isAdmin = session?.user?.email && ADMINS.includes(session.user.email);
+  const isAdmin = session?.user?.email && ADMINS.some(admin => admin.toLowerCase() === session.user?.email?.toLowerCase());
 
   const calculateCleaning = (targetDateStr: string) => {
     const start = new Date(CLEANING_START_DATE);
@@ -221,7 +221,7 @@ export default function Dashboard() {
       <div className="max-w-[1200px] mx-auto p-4 md:p-6">
         {!session ? (
           <div className="min-h-[85vh] flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h1 className="text-5xl font-black mb-2 text-gray-900 dark:text-white tracking-tighter italic">School Hub</h1>
+            <h1 className="text-5xl font-black mb-2 text-gray-900 dark:text-white tracking-tighter italic">School Hub v3</h1>
             <p className="text-gray-400 dark:text-gray-500 mb-12 text-xs font-bold uppercase tracking-widest">Connect Classroom, Outlook, Teams</p>
             
             <button 
@@ -235,7 +235,7 @@ export default function Dashboard() {
         ) : (
           <>
             <header className="flex justify-between items-center mb-10">
-              <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">School Hub</h1>
+              <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">School Hub v3</h1>
               
               <div className="flex items-center gap-2">
                 <button 
@@ -594,26 +594,39 @@ export default function Dashboard() {
                 <PlusCircle size={16} /> 場所を追加
               </button>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    const saved = localStorage.getItem("cleaning_duties");
+                    if (saved) setDuties(JSON.parse(saved));
+                    else setDuties(CLEANING_DUTY);
+                    setShowDutyEditor(false);
+                  }} 
+                  className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-2xl font-black text-[11px] hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                >
+                  キャンセル
+                </button>
+                <button 
+                  onClick={() => {
+                    localStorage.setItem("cleaning_duties", JSON.stringify(duties));
+                    setShowDutyEditor(false);
+                  }} 
+                  className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-[11px] hover:opacity-90 transition-all shadow-xl shadow-gray-200 dark:shadow-none"
+                >
+                  保存
+                </button>
+              </div>
               <button 
                 onClick={() => {
-                  const saved = localStorage.getItem("cleaning_duties");
-                  if (saved) setDuties(JSON.parse(saved));
-                  else setDuties(CLEANING_DUTY);
-                  setShowDutyEditor(false);
-                }} 
-                className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-2xl font-black text-[11px] hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  if (confirm("掃除当番を初期状態（1班〜6班）に戻しますか？")) {
+                    setDuties(CLEANING_DUTY);
+                    localStorage.removeItem("cleaning_duties");
+                  }
+                }}
+                className="w-full py-3 text-[9px] font-black text-red-300 hover:text-red-500 transition-colors"
               >
-                キャンセル
-              </button>
-              <button 
-                onClick={() => {
-                  localStorage.setItem("cleaning_duties", JSON.stringify(duties));
-                  setShowDutyEditor(false);
-                }} 
-                className="flex-1 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-[11px] hover:opacity-90 transition-all shadow-xl shadow-gray-200 dark:shadow-none"
-              >
-                保存
+                初期状態に戻す (1班〜6班)
               </button>
             </div>
           </div>
