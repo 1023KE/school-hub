@@ -44,6 +44,12 @@ const CLEANING_DUTY = [
   { area: "廊下", names: ["伊藤", "渡辺"] },
 ];
 
+const USEFUL_LINKS = [
+  { name: "UNIPA (ポータル)", url: "https://unipa.omu.ac.jp/up/faces/login/index.jsp", icon: <Link2 size={12} /> },
+  { name: "シラバス検索", url: "https://syllabus.omu.ac.jp/", icon: <Search size={12} /> },
+  { name: "図書館 OMUサーチ", url: "https://lib.omu.ac.jp/", icon: <Link2 size={12} /> },
+];
+
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -115,7 +121,29 @@ export default function Dashboard() {
     return item.source === "連絡" || (item as any).platform === "Outlook" || (item as any).platform === "Teams";
   });
 
-  if (status === "loading") return <div className="p-8 text-center text-gray-400 font-medium">OMUアカウントを確認中...</div>;
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    const date = new Date(item.date);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
+    
+    let label = "それ以前";
+    if (isToday) label = "今日";
+    else if (isYesterday) label = "昨日";
+
+    if (!acc[label]) acc[label] = [];
+    acc[label].push(item);
+    return acc;
+  }, {} as Record<string, NotificationItem[]>);
+
+  if (status === "loading") return (
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Checking OMU Session...</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-white dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 text-sm antialiased font-sans transition-colors duration-300">
@@ -180,6 +208,28 @@ export default function Dashboard() {
                   ))}
                 </div>
               </section>
+
+              <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                <h2 className="text-xs font-bold flex items-center gap-2 mb-6 text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                  <Link2 size={14} /> 便利リンク
+                </h2>
+                <div className="space-y-2">
+                  {USEFUL_LINKS.map((link, i) => (
+                    <a 
+                      key={i} 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black rounded-xl text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group border border-transparent hover:border-blue-100 dark:hover:border-blue-900/50"
+                    >
+                      <span className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        {link.icon} {link.name}
+                      </span>
+                      <ExternalLink size={12} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
+                    </a>
+                  ))}
+                </div>
+              </section>
             </div>
 
             {/* メインリスト */}
@@ -205,57 +255,71 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-8">
                     {filteredItems.length === 0 && !loading ? (
                       <div className="text-center py-20 text-gray-300 dark:text-gray-700 text-xs font-black italic"><Bell size={40} className="mx-auto mb-4 opacity-10" />No Data Found</div>
                     ) : (
-                      filteredItems.map((item) => {
-                        const isOutlook = item.courseName === "Outlook";
-                        const isTeams = item.courseName === "Teams";
-                        const isClassroom = !isOutlook && !isTeams;
-
-                        const gradientClasses = isClassroom 
-                          ? "bg-gradient-to-r from-green-100/40 via-transparent to-transparent dark:from-green-900/30 dark:via-transparent dark:to-transparent border-green-100/50 dark:border-green-900/30" 
-                          : isOutlook 
-                          ? "bg-gradient-to-r from-blue-100/40 via-transparent to-transparent dark:from-blue-900/30 dark:via-transparent dark:to-transparent border-blue-100/50 dark:border-blue-900/30"
-                          : isTeams 
-                          ? "bg-gradient-to-r from-indigo-100/40 via-transparent to-transparent dark:from-indigo-900/30 dark:via-transparent dark:to-transparent border-indigo-100/50 dark:border-indigo-900/30"
-                          : "bg-white dark:bg-gray-900 border-gray-50 dark:border-gray-800";
+                      ["今日", "昨日", "それ以前"].map((group) => {
+                        const groupItems = groupedItems[group];
+                        if (!groupItems || groupItems.length === 0) return null;
 
                         return (
-                          <button 
-                            key={item.id} 
-                            onClick={() => setSelectedItem(item)} 
-                            className={`w-full text-left p-4 rounded-2xl border transition-all flex justify-between items-center group 
-                              ${activeTab !== "all" && item.isExpired ? "opacity-40" : "hover:shadow-md dark:hover:shadow-blue-900/20 shadow-sm"}
-                              ${gradientClasses}
-                            `}
-                          >
-                            <div className="flex-1 min-w-0 pr-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className={`p-1 rounded-lg ${
-                                  item.source === "課題" ? "bg-red-50 dark:bg-red-900/30 text-red-500" : 
-                                  isClassroom ? "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300" :
-                                  isOutlook ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300" :
-                                  isTeams ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300" :
-                                  "bg-green-50 dark:bg-green-900/20 text-green-600"
-                                }`}>
-                                  {item.source === "課題" && <CheckCircle2 size={14} />}
-                                  {item.source === "連絡" && (isOutlook ? <Calendar size={14} /> : isTeams ? <MessageSquare size={14} /> : <Megaphone size={14} />)}
-                                </div>
-                                <span className="text-[9px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-tighter">{item.source}</span>
-                                {item.dueDateString && !item.isExpired && <span className="text-[9px] font-black text-orange-500">{item.dueDateString}まで</span>}
-                                <span className={`text-[9px] font-black truncate max-w-[120px] ml-auto ${
-                                  isClassroom ? "text-green-600/50 dark:text-green-400/30" :
-                                  isOutlook ? "text-blue-600/50 dark:text-blue-400/30" :
-                                  isTeams ? "text-indigo-600/50 dark:text-indigo-400/30" :
-                                  "text-gray-300 dark:text-gray-700"
-                                }`}>{item.courseName}</span>
-                              </div>
-                              <h3 className="font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">{item.title}</h3>
+                          <div key={group} className="space-y-3">
+                            <h4 className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest px-1 flex items-center gap-2">
+                              {group} <div className="h-[1px] flex-1 bg-gray-100 dark:bg-gray-800"></div>
+                            </h4>
+                            <div className="space-y-3">
+                              {groupItems.map((item) => {
+                                const isOutlook = item.courseName === "Outlook";
+                                const isTeams = item.courseName === "Teams";
+                                const isClassroom = !isOutlook && !isTeams;
+
+                                const gradientClasses = isClassroom 
+                                  ? "bg-gradient-to-r from-green-100/40 via-transparent to-transparent dark:from-green-900/30 dark:via-transparent dark:to-transparent border-green-100/50 dark:border-green-900/30" 
+                                  : isOutlook 
+                                  ? "bg-gradient-to-r from-blue-100/40 via-transparent to-transparent dark:from-blue-900/30 dark:via-transparent dark:to-transparent border-blue-100/50 dark:border-blue-900/30"
+                                  : isTeams 
+                                  ? "bg-gradient-to-r from-indigo-100/40 via-transparent to-transparent dark:from-indigo-900/30 dark:via-transparent dark:to-transparent border-indigo-100/50 dark:border-indigo-900/30"
+                                  : "bg-white dark:bg-gray-900 border-gray-50 dark:border-gray-800";
+
+                                return (
+                                  <button 
+                                    key={item.id} 
+                                    onClick={() => setSelectedItem(item)} 
+                                    className={`w-full text-left p-4 rounded-2xl border transition-all flex justify-between items-center group 
+                                      ${activeTab !== "all" && item.isExpired ? "opacity-40" : "hover:shadow-md dark:hover:shadow-blue-900/20 shadow-sm"}
+                                      ${gradientClasses}
+                                    `}
+                                  >
+                                    <div className="flex-1 min-w-0 pr-4">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <div className={`p-1 rounded-lg ${
+                                          item.source === "課題" ? "bg-red-50 dark:bg-red-900/30 text-red-500" : 
+                                          isClassroom ? "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300" :
+                                          isOutlook ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300" :
+                                          isTeams ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300" :
+                                          "bg-green-50 dark:bg-green-900/20 text-green-600"
+                                        }`}>
+                                          {item.source === "課題" && <CheckCircle2 size={14} />}
+                                          {item.source === "連絡" && (isOutlook ? <Calendar size={14} /> : isTeams ? <MessageSquare size={14} /> : <Megaphone size={14} />)}
+                                        </div>
+                                        <span className="text-[9px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-tighter">{item.source}</span>
+                                        {item.dueDateString && !item.isExpired && <span className="text-[9px] font-black text-orange-500">{item.dueDateString}まで</span>}
+                                        <span className={`text-[9px] font-black truncate max-w-[120px] ml-auto ${
+                                          isClassroom ? "text-green-600/50 dark:text-green-400/30" :
+                                          isOutlook ? "text-blue-600/50 dark:text-blue-400/30" :
+                                          isTeams ? "text-indigo-600/50 dark:text-indigo-400/30" :
+                                          "text-gray-300 dark:text-gray-700"
+                                        }`}>{item.courseName}</span>
+                                      </div>
+                                      <h3 className="font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">{item.title}</h3>
+                                    </div>
+                                    <ChevronRight size={16} className="text-gray-200 dark:text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                                  </button>
+                                );
+                              })}
                             </div>
-                            <ChevronRight size={16} className="text-gray-200 dark:text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-                          </button>
+                          </div>
                         );
                       })
                     )}
