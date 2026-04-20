@@ -25,8 +25,11 @@ import {
 } from "lucide-react";
 
 const stripHtml = (html: string) => {
-  // HTMLタグを削除
-  let text = html.replace(/<[^>]*>?/gm, '');
+  // 改行として扱うタグを置換
+  let text = html.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/p>|<\/div>/gi, '\n');
+  // 残りのHTMLタグを削除
+  text = text.replace(/<[^>]*>?/gm, '');
   // 特殊文字のデコード
   const entities: Record<string, string> = {
     '&nbsp;': ' ',
@@ -485,7 +488,7 @@ export default function Dashboard() {
                 <button onClick={() => setSelectedItem(null)} className="text-gray-300 hover:text-gray-900 dark:hover:text-white p-2 bg-white/80 dark:bg-black/40 rounded-full transition-all backdrop-blur-sm"><X size={20} /></button>
               </div>
               
-              <div className="bg-white dark:bg-black/40 p-6 rounded-3xl mb-8 max-h-[350px] overflow-y-auto border border-gray-100/50 dark:border-gray-800/50 text-xs font-medium leading-relaxed text-gray-600 dark:text-gray-300 shadow-inner">
+              <div className="bg-white dark:bg-black/40 p-6 rounded-3xl mb-8 max-h-[350px] overflow-y-auto border border-gray-100/50 dark:border-gray-800/50 text-xs font-medium leading-relaxed text-gray-600 dark:text-gray-300 shadow-inner whitespace-pre-wrap">
                 {linkify(selectedItem.content)}
               </div>
 
