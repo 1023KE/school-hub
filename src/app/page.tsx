@@ -24,9 +24,27 @@ import {
   Settings
 } from "lucide-react";
 
+const stripHtml = (html: string) => {
+  // HTMLタグを削除
+  let text = html.replace(/<[^>]*>?/gm, '');
+  // 特殊文字のデコード
+  const entities: Record<string, string> = {
+    '&nbsp;': ' ',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&copy;': '©',
+    '&reg;': '®'
+  };
+  return text.replace(/&[a-z0-9#]+;/gi, (match) => entities[match.toLowerCase()] || match);
+};
+
 const linkify = (text: string) => {
+  const cleanText = stripHtml(text);
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.split(urlRegex).map((part, i) => {
+  return cleanText.split(urlRegex).map((part, i) => {
     if (part.match(urlRegex)) {
       return (
         <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline break-all inline-flex items-center gap-1">
@@ -312,7 +330,7 @@ export default function Dashboard() {
                                           "text-gray-300 dark:text-gray-700"
                                         }`}>{item.courseName}</span>
                                       </div>
-                                      <h3 className="font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">{item.title}</h3>
+                                      <h3 className="font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">{stripHtml(item.title)}</h3>
                                     </div>
                                     <ChevronRight size={16} className="text-gray-200 dark:text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                                   </button>
@@ -346,7 +364,7 @@ export default function Dashboard() {
                     selectedItem.courseName === "Teams" ? "text-indigo-400" :
                     "text-green-400"
                   }`}>{selectedItem.courseName}</div>
-                  <h2 className="text-xl font-black text-gray-900 dark:text-white leading-tight">{selectedItem.title}</h2>
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white leading-tight">{stripHtml(selectedItem.title)}</h2>
                 </div>
                 <button onClick={() => setSelectedItem(null)} className="text-gray-300 hover:text-gray-900 dark:hover:text-white p-2 bg-white/80 dark:bg-black/40 rounded-full transition-all backdrop-blur-sm"><X size={20} /></button>
               </div>
