@@ -139,10 +139,17 @@ export default function Dashboard() {
   const getTargetWednesday = () => {
     const now = new Date();
     const day = now.getDay();
-    const diff = (3 - day + 7) % 7;
+    // 水曜日(3)までの差分を計算。木曜(4)以降なら来週の水曜日を指すようにする
+    let diff = (3 - day + 7) % 7;
+    // 木曜、金曜、土曜なら来週へ
+    if (day > 3) diff = (3 - day + 7);
+    
     const target = new Date(now);
     target.setDate(now.getDate() + diff);
-    return target.toISOString().split('T')[0];
+    const year = target.getFullYear();
+    const month = String(target.getMonth() + 1).padStart(2, '0');
+    const date = String(target.getDate()).padStart(2, '0');
+    return `${year}-${month}-${date}`;
   };
 
   const targetWed = getTargetWednesday();
@@ -287,7 +294,9 @@ export default function Dashboard() {
 
                 <div className="text-center py-4">
                   <div className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-1">
-                    {new Date(targetWed).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })} (水)
+                    {new Date(targetWed.replace(/-/g, '/')).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })} (水)
+                    {new Date(targetWed.replace(/-/g, '/')).toDateString() === new Date().toDateString() ? " (今日)" : 
+                     new Date(targetWed.replace(/-/g, '/')).getTime() - new Date().getTime() < 7 * 24 * 60 * 60 * 1000 ? " (今週)" : " (来週)"}
                   </div>
                   
                   {isTargetSkipped ? (
