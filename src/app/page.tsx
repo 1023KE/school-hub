@@ -288,17 +288,6 @@ export default function Dashboard() {
               </div>
               
               <div className="bg-white dark:bg-black/40 p-6 rounded-3xl mb-8 max-h-[350px] overflow-y-auto border border-gray-100/50 dark:border-gray-800/50 text-xs font-medium leading-relaxed text-gray-600 dark:text-gray-300 shadow-inner">
-                {selectedItem.summary && (
-                  <div className="mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
-                    <div className="text-[10px] font-black text-blue-500 mb-2 uppercase tracking-widest flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                      AI Summary
-                    </div>
-                    <p className="text-gray-900 dark:text-white font-bold leading-relaxed bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-2xl">
-                      {selectedItem.summary}
-                    </p>
-                  </div>
-                )}
                 {linkify(selectedItem.content)}
               </div>
 

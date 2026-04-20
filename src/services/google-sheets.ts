@@ -26,7 +26,6 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
     const dateIdx = findIndex("Date", 2);
     const sourceIdx = findIndex("Source", 3);
     const urlIdx = findIndex("URL", 4);
-    const summaryIdx = findIndex("Summary", 5);
 
     // Classroomと同じキーワード判別ロジック
     const classify = (text: string) => {
@@ -40,7 +39,6 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
       const rawDate = row[dateIdx];
       const rawSource = row[sourceIdx] || "Outlook/Teams";
       const url = row[urlIdx] || "";
-      const summary = row[summaryIdx] || "";
 
       let date = new Date().toISOString();
       if (rawDate) {
@@ -58,7 +56,6 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
         // タイトルまたは内容から「課題」か「連絡」かを判別
         source: classify(title + content),
         url: url,
-        summary: summary,
         courseName: rawSource, // 表示名（Outlook, Teamsなど）
       };
     });

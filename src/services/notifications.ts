@@ -11,7 +11,6 @@ export interface NotificationItem {
   isExpired: boolean; // 期限切れフラグ
   source: "課題" | "連絡" | "Outlook" | "Teams";
   url?: string;
-  summary?: string; // AIによる要約
 }
 
 export async function fetchAllNotifications(session: any): Promise<NotificationItem[]> {
