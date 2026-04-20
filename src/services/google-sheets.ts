@@ -16,14 +16,17 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
     if (!rows || rows.length < 2) return [];
 
     const headers = rows[0];
-    const findIndex = (name: string) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
+    const findIndex = (name: string, fallback: number) => {
+      const idx = headers.findIndex(h => h && h.toLowerCase().includes(name.toLowerCase()));
+      return idx === -1 ? fallback : idx;
+    };
 
-    const titleIdx = findIndex("Title");
-    const contentIdx = findIndex("Content");
-    const dateIdx = findIndex("Date");
-    const sourceIdx = findIndex("Source");
-    const urlIdx = findIndex("URL");
-    const summaryIdx = findIndex("Summary");
+    const titleIdx = findIndex("Title", 0);
+    const contentIdx = findIndex("Content", 1);
+    const dateIdx = findIndex("Date", 2);
+    const sourceIdx = findIndex("Source", 3);
+    const urlIdx = findIndex("URL", 4);
+    const summaryIdx = findIndex("Summary", 5);
 
     // Classroomと同じキーワード判別ロジック
     const classify = (text: string) => {
@@ -32,9 +35,14 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
     };
 
     return rows.slice(1).map((row, index) => {
+      const title = row[titleIdx] || "";
+      const content = row[contentIdx] || "";
       const rawDate = row[dateIdx];
+      const rawSource = row[sourceIdx] || "Outlook/Teams";
+      const url = row[urlIdx] || "";
+      const summary = row[summaryIdx] || "";
+
       let date = new Date().toISOString();
-      
       if (rawDate) {
         const parsedDate = new Date(rawDate);
         if (!isNaN(parsedDate.getTime())) {
@@ -42,19 +50,15 @@ export async function getSheetsData(accessToken: string, spreadsheetId: string) 
         }
       }
 
-      const title = row[titleIdx] || row[0] || "無題";
-      const content = row[contentIdx] || row[1] || "";
-      const rawSource = row[sourceIdx] || "Outlook/Teams";
-
       return {
         id: `sheet-${index}-${Date.now()}`,
-        title: title,
+        title: title || "無題",
         content: content,
         date: date,
         // タイトルまたは内容から「課題」か「連絡」かを判別
         source: classify(title + content),
-        url: row[urlIdx] || "",
-        summary: row[summaryIdx] || "",
+        url: url,
+        summary: summary,
         courseName: rawSource, // 表示名（Outlook, Teamsなど）
       };
     });
