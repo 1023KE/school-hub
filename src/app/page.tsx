@@ -66,7 +66,7 @@ const CLEANING_DUTY = [
 ];
 
 const ADMINS = ["rn26102n@st.omu.ac.jp"];
-const CLEANING_START_DATE = "2025-04-09"; // 基準となる最初の水曜日 (1班-4班)
+const CLEANING_START_DATE = "2026-04-15"; // 基準となる最初の水曜日 (1班-4班)
 
 const USEFUL_LINKS = [
   { name: "UNIPA (ポータル)", url: "https://unipa.omu.ac.jp/up/faces/login/index.jsp", icon: <Link2 size={12} /> },
