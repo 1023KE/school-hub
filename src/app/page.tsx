@@ -68,12 +68,6 @@ const CLEANING_DUTY = [
 const ADMINS = ["rn26102n@st.omu.ac.jp", "rn26102@st.omu.ac.jp"];
 const CLEANING_START_DATE = "2026-04-15"; // 基準となる最初の水曜日 (1班-4班)
 
-const USEFUL_LINKS = [
-  { name: "UNIPA (ポータル)", url: "https://unipa.omu.ac.jp/up/faces/login/index.jsp", icon: <Link2 size={12} /> },
-  { name: "シラバス検索", url: "https://syllabus.omu.ac.jp/", icon: <Search size={12} /> },
-  { name: "図書館 OMUサーチ", url: "https://lib.omu.ac.jp/", icon: <Link2 size={12} /> },
-];
-
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const [items, setItems] = useState<NotificationItem[]>([]);
@@ -331,28 +325,6 @@ export default function Dashboard() {
                     </div>
                   </div>
                 )}
-              </section>
-
-              <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
-                <h2 className="text-xs font-bold flex items-center gap-2 mb-6 text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                  <Link2 size={14} /> 便利リンク
-                </h2>
-                <div className="space-y-2">
-                  {USEFUL_LINKS.map((link, i) => (
-                    <a 
-                      key={i} 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black rounded-xl text-xs hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group border border-transparent hover:border-blue-100 dark:hover:border-blue-900/50"
-                    >
-                      <span className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                        {link.icon} {link.name}
-                      </span>
-                      <ExternalLink size={12} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
-                    </a>
-                  ))}
-                </div>
               </section>
             </div>
 
