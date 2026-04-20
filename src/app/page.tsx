@@ -65,7 +65,7 @@ const CLEANING_DUTY = [
   { area: "6班", names: ["担当K", "担当L"] },
 ];
 
-const ADMINS = ["rn26102n@st.omu.ac.jp"];
+const ADMINS = ["rn26102n@st.omu.ac.jp", "rn26102@st.omu.ac.jp"];
 const CLEANING_START_DATE = "2026-04-15"; // 基準となる最初の水曜日 (1班-4班)
 
 const USEFUL_LINKS = [
