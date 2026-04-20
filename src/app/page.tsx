@@ -57,10 +57,16 @@ const linkify = (text: string) => {
 };
 
 const CLEANING_DUTY = [
-  { area: "教室前", names: ["佐藤", "鈴木"] },
-  { area: "教室後ろ", names: ["高橋", "田中"] },
-  { area: "廊下", names: ["伊藤", "渡辺"] },
+  { area: "1班", names: ["担当A", "担当B"] },
+  { area: "2班", names: ["担当C", "担当D"] },
+  { area: "3班", names: ["担当E", "担当F"] },
+  { area: "4班", names: ["担当G", "担当H"] },
+  { area: "5班", names: ["担当I", "担当J"] },
+  { area: "6班", names: ["担当K", "担当L"] },
 ];
+
+const ADMINS = ["rn26102n@st.omu.ac.jp"];
+const CLEANING_START_DATE = "2025-04-09"; // 基準となる最初の水曜日 (1班-4班)
 
 const USEFUL_LINKS = [
   { name: "UNIPA (ポータル)", url: "https://unipa.omu.ac.jp/up/faces/login/index.jsp", icon: <Link2 size={12} /> },
@@ -81,14 +87,17 @@ export default function Dashboard() {
   const [customSheetId, setCustomSheetId] = useState("");
   const [duties, setDuties] = useState<{ area: string; names: string[] }[]>(CLEANING_DUTY);
   const [showDutyEditor, setShowDutyEditor] = useState(false);
+  const [skippedDates, setSkippedDates] = useState<string[]>([]);
 
   useEffect(() => {
     const savedId = localStorage.getItem("custom_sheet_id");
     const hasSeenTutorial = localStorage.getItem("has_seen_tutorial");
     const savedDuties = localStorage.getItem("cleaning_duties");
+    const savedSkips = localStorage.getItem("cleaning_skips");
     
     if (savedId) setCustomSheetId(savedId);
     if (savedDuties) setDuties(JSON.parse(savedDuties));
+    if (savedSkips) setSkippedDates(JSON.parse(savedSkips));
 
     // ログイン済みで、かつIDが未設定で、まだ案内を見ていない場合に表示
     if (status === "authenticated" && !savedId && !hasSeenTutorial) {
@@ -125,6 +134,50 @@ export default function Dashboard() {
     localStorage.setItem("custom_sheet_id", customSheetId);
     setShowSettings(false);
     fetchData();
+  };
+
+  const getTargetWednesday = () => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = (3 - day + 7) % 7;
+    const target = new Date(now);
+    target.setDate(now.getDate() + diff);
+    return target.toISOString().split('T')[0];
+  };
+
+  const targetWed = getTargetWednesday();
+  const isAdmin = session?.user?.email && ADMINS.includes(session.user.email);
+
+  const calculateCleaning = (targetDateStr: string) => {
+    const start = new Date(CLEANING_START_DATE);
+    const target = new Date(targetDateStr);
+    let activeCount = 0;
+    let curr = new Date(start);
+    while (curr <= target) {
+      if (curr.getDay() === 3) {
+        const dStr = curr.toISOString().split('T')[0];
+        if (!skippedDates.includes(dStr)) activeCount++;
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    const idx = (activeCount - 1) % 6;
+    const leadIdx = idx < 0 ? 0 : idx;
+    const partnerIdx = (leadIdx + 3) % 6;
+    return { lead: duties[leadIdx], partner: duties[partnerIdx] };
+  };
+
+  const currentCleaning = calculateCleaning(targetWed);
+  const isTargetSkipped = skippedDates.includes(targetWed);
+
+  const toggleSkip = () => {
+    let nextSkips;
+    if (isTargetSkipped) {
+      nextSkips = skippedDates.filter(d => d !== targetWed);
+    } else {
+      nextSkips = [...skippedDates, targetWed];
+    }
+    setSkippedDates(nextSkips);
+    localStorage.setItem("cleaning_skips", JSON.stringify(nextSkips));
   };
 
   const filteredItems = items.filter(item => {
@@ -205,26 +258,70 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* サイドバー */}
             <div className="lg:col-span-3 space-y-8">
-              <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+              <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xs font-bold flex items-center gap-2 text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     <Brush size={14} /> 掃除当番
                   </h2>
-                  <button 
-                    onClick={() => setShowDutyEditor(true)}
-                    className="p-1.5 text-gray-300 hover:text-blue-500 transition-colors bg-gray-50 dark:bg-black rounded-lg"
-                  >
-                    <Settings size={12} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && (
+                      <button 
+                        onClick={toggleSkip}
+                        className={`text-[9px] font-black px-3 py-1.5 rounded-full transition-all border ${
+                          isTargetSkipped 
+                          ? "bg-red-50 text-red-500 border-red-100 dark:bg-red-900/20 dark:border-red-900/40" 
+                          : "bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-900/20 dark:border-blue-900/40 hover:bg-blue-100"
+                        }`}
+                      >
+                        {isTargetSkipped ? "休み解除" : "今週はなし"}
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => setShowDutyEditor(true)}
+                      className="p-1.5 text-gray-300 hover:text-blue-500 transition-colors bg-gray-50 dark:bg-black rounded-lg"
+                    >
+                      <Settings size={12} />
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  {duties.map((duty, i) => (
-                    <div key={i} className="flex justify-between p-3 bg-gray-50 dark:bg-black rounded-xl text-xs border border-transparent">
-                      <span className="font-bold text-gray-700 dark:text-gray-300">{duty.area}</span>
-                      <span className="text-gray-500 dark:text-gray-500 font-medium">{duty.names.join(", ")}</span>
+
+                <div className="text-center py-4">
+                  <div className="text-[10px] font-black text-gray-400 dark:text-gray-600 uppercase tracking-widest mb-1">
+                    {new Date(targetWed).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })} (水)
+                  </div>
+                  
+                  {isTargetSkipped ? (
+                    <div className="py-4">
+                      <div className="text-lg font-black text-red-400 dark:text-red-500 tracking-tighter italic">No Cleaning</div>
+                      <p className="text-[10px] text-gray-400 font-bold mt-1">今週は掃除はありません</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">
+                          {currentCleaning.lead.area} <span className="text-blue-500 mx-1">&</span> {currentCleaning.partner.area}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                        <span>{currentCleaning.lead.names.join(", ")}</span>
+                        <span>/</span>
+                        <span>{currentCleaning.partner.names.join(", ")}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {!isTargetSkipped && (
+                  <div className="mt-4 pt-4 border-t border-gray-50 dark:border-gray-800/50">
+                    <div className="flex justify-between items-center text-[9px] font-black text-gray-300 dark:text-gray-700 uppercase tracking-widest">
+                      <span>Next week</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        {calculateCleaning(new Date(new Date(targetWed).setDate(new Date(targetWed).getDate() + 7)).toISOString().split('T')[0]).lead.area} & 
+                        {calculateCleaning(new Date(new Date(targetWed).setDate(new Date(targetWed).getDate() + 7)).toISOString().split('T')[0]).partner.area}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </section>
 
               <section className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
