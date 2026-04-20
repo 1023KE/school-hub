@@ -221,17 +221,55 @@ export default function Dashboard() {
     <div className="bg-white dark:bg-black min-h-screen text-gray-900 dark:text-gray-100 text-sm antialiased font-sans transition-colors duration-300">
       <div className="max-w-[1200px] mx-auto p-4 md:p-6">
         {!session ? (
-          <div className="min-h-[85vh] flex flex-col items-center justify-center text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <h1 className="text-5xl font-black mb-2 text-gray-900 dark:text-white tracking-tighter italic">School Hub v3</h1>
-            <p className="text-gray-400 dark:text-gray-500 mb-12 text-xs font-bold uppercase tracking-widest">Connect Classroom, Outlook, Teams</p>
+          <div className="min-h-[100vh] flex flex-col items-center justify-center relative overflow-hidden bg-white dark:bg-black">
+            {/* Background Decorative Elements */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-400/10 dark:bg-blue-600/5 blur-[120px] rounded-full animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-green-400/10 dark:bg-green-600/5 blur-[120px] rounded-full animate-pulse [animation-delay:2s]"></div>
             
-            <button 
-              onClick={() => signIn("google")} 
-              className="w-full max-w-xs py-5 bg-gray-900 dark:bg-white dark:text-black text-white rounded-3xl font-black text-xs hover:opacity-90 transition-all flex items-center justify-center gap-4 shadow-2xl shadow-gray-200 dark:shadow-none"
-            >
-              <div className="w-6 h-6 bg-red-500 rounded-lg flex items-center justify-center text-white text-[10px] font-black">G</div>
-              OMUアカウントでログイン
-            </button>
+            <div className="relative z-10 flex flex-col items-center max-w-lg w-full px-8">
+              <div className="mb-16 text-center space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-top-4 duration-1000">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                  </span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">@st.omu.ac.jp Only</span>
+                </div>
+                
+                <h1 className="text-8xl font-black text-gray-900 dark:text-white tracking-tighter italic leading-none animate-in fade-in zoom-in duration-1000">
+                  School<br/>Hub
+                </h1>
+                
+                <div className="h-1 w-12 bg-blue-500 mx-auto rounded-full animate-in fade-in scale-x-0 duration-1000 [animation-delay:600ms]"></div>
+                
+                <p className="text-gray-400 dark:text-gray-500 text-sm font-bold leading-relaxed max-w-[280px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-1000 [animation-delay:400ms]">
+                  Classroom, Outlook, Teams.<br/>
+                  すべての通知を、この場所に。
+                </p>
+              </div>
+              
+              <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 [animation-delay:800ms]">
+                <button 
+                  onClick={() => signIn("google")} 
+                  className="w-full py-6 bg-gray-900 dark:bg-white text-white dark:text-black rounded-[40px] font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 shadow-[0_20px_60px_rgba(0,0,0,0.1)] dark:shadow-none border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                >
+                  <div className="w-6 h-6 bg-red-500 rounded-xl flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-red-500/40">G</div>
+                  OMUアカウントでログイン
+                </button>
+                
+                <p className="text-[9px] text-gray-300 dark:text-gray-700 font-black uppercase tracking-[0.3em] text-center pt-8">
+                  Student Life Integration System
+                </p>
+              </div>
+            </div>
+
+            {/* Floating Visual Elements */}
+            <div className="absolute top-[20%] right-[10%] opacity-10 dark:opacity-5 animate-bounce [animation-duration:8s]">
+              <Calendar size={80} strokeWidth={1} />
+            </div>
+            <div className="absolute bottom-[20%] left-[10%] opacity-10 dark:opacity-5 animate-bounce [animation-duration:10s] [animation-delay:2s]">
+              <MessageSquare size={80} strokeWidth={1} />
+            </div>
           </div>
         ) : (
           <>
